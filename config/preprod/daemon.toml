@@ -1,5 +1,4 @@
-[source]
-type = "mithril"
+[source.mithril]
 aggregator = "https://aggregator.release-preprod.api.mithril.network/aggregator"
 
 [storage]
@@ -23,5 +22,5 @@ listen_address = "[::]:30031"
 magic = 1
 
 [logging]
-level = "info"
+max_level = "info"
 
