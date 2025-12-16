@@ -39,8 +39,10 @@ if ! check_command "docker"; then
     MISSING_DEPS=1
 fi
 
-if ! check_command "docker-compose"; then
-    echo "  Install Docker Compose: https://docs.docker.com/compose/install/"
+# Check for docker compose (V2 plugin)
+if ! docker compose version > /dev/null 2>&1; then
+    echo -e "${RED}Error: docker compose is required but not installed.${NC}"
+    echo "  Install Docker Compose plugin: https://docs.docker.com/compose/install/linux/"
     MISSING_DEPS=1
 fi
 

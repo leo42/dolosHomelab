@@ -35,16 +35,16 @@ fi
 
 echo -e "${BLUE}Stopping nodes...${NC}"
 
-# Stop containers using docker-compose
-if docker-compose stop; then
+# Stop containers using docker compose
+if docker compose stop; then
     echo ""
     echo -e "${GREEN}✓ Nodes stopped successfully!${NC}"
     echo ""
     echo "To remove containers (and volumes):"
-    echo "  docker-compose down"
+    echo "  docker compose down"
     echo ""
     echo "To remove containers and volumes:"
-    echo "  docker-compose down -v"
+    echo "  docker compose down -v"
     echo ""
     echo "Note: Removing volumes will delete blockchain data."
 else

@@ -96,13 +96,13 @@ fi
 echo ""
 echo -e "${BLUE}Starting nodes...${NC}"
 
-# Start containers using docker-compose
-if docker-compose up -d; then
+# Start containers using docker compose
+if docker compose up -d; then
     echo ""
     echo -e "${GREEN}✓ Nodes started successfully!${NC}"
     echo ""
     echo "Status:"
-    docker-compose ps
+    docker compose ps
     echo ""
     echo "To view logs:"
     echo "  ./scripts/logs.sh mainnet"

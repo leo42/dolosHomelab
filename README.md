@@ -16,7 +16,7 @@ This setup provides:
 ## Prerequisites
 
 - **Docker**: Version 20.10 or higher
-- **Docker Compose**: Version 1.29 or higher (or Docker Compose V2)
+- **Docker Compose**: V2 plugin (install: `sudo apt-get install docker-compose-plugin`)
 - **Disk Space**: Minimum 350GB, recommended 500GB+
   - Mainnet: ~250GB
   - Preprod: ~75GB
@@ -100,7 +100,7 @@ Docker Compose uses environment variables from a `.env` file (created from `.env
 
 1. Copy the example: `cp .env.example .env`
 2. Edit `.env` with your settings
-3. Or set environment variables before running docker-compose
+3. Or set environment variables before running `docker compose`
 
 Example `.env` customization:
 
@@ -154,8 +154,8 @@ Start both nodes:
 
 Or start individually with Docker Compose:
 ```bash
-docker-compose up -d dolos-mainnet
-docker-compose up -d dolos-preprod
+docker compose up -d dolos-mainnet
+docker compose up -d dolos-preprod
 ```
 
 ### Viewing Logs
@@ -187,15 +187,15 @@ Stop both nodes gracefully:
 
 Or stop individually:
 ```bash
-docker-compose stop dolos-mainnet
-docker-compose stop dolos-preprod
+docker compose stop dolos-mainnet
+docker compose stop dolos-preprod
 ```
 
 ### Checking Status
 
 Check container status:
 ```bash
-docker-compose ps
+docker compose ps
 ```
 
 Check individual container:
@@ -273,14 +273,14 @@ Re-download genesis files:
 
 ### Port Conflicts
 
-Edit `.env.mainnet` or `.env.preprod` to change ports:
+Edit `.env` file to change ports:
 ```bash
 MAINNET_PORT=3001  # Change to available port
 ```
 
 Then restart:
 ```bash
-docker-compose down
+docker compose down
 ./scripts/start.sh
 ```
 
@@ -323,20 +323,20 @@ chmod -R 755 data/
 
 Pull latest image:
 ```bash
-docker-compose pull
-docker-compose up -d
+docker compose pull
+docker compose up -d
 ```
 
 ### Cleaning Up
 
 Stop and remove containers (keeps data):
 ```bash
-docker-compose down
+docker compose down
 ```
 
 Stop and remove containers and volumes (deletes data):
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 **Warning**: Removing volumes deletes all blockchain data!

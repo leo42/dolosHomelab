@@ -106,7 +106,7 @@ case $NODE in
             echo -e "${YELLOW}Note: Following logs from multiple containers.${NC}"
             echo -e "${YELLOW}Press Ctrl+C to stop.${NC}"
             echo ""
-            docker-compose logs -f
+            docker compose logs -f
         else
             show_logs "dolos-mainnet" "Mainnet"
             echo ""
