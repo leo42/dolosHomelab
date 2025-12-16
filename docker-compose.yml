@@ -3,7 +3,7 @@ services:
     image: ${DOLOS_IMAGE:-ghcr.io/txpipe/dolos:latest}
     container_name: dolos-mainnet
     volumes:
-      - ./config/mainnet/daemon.toml:/etc/dolos/daemon.toml:ro
+      - ./config/mainnet:/etc/dolos:ro
       - ./data/mainnet:/data
     ports:
       - "${MAINNET_GRPC_PORT:-50051}:50051"
@@ -30,7 +30,7 @@ services:
     image: ${DOLOS_IMAGE:-ghcr.io/txpipe/dolos:latest}
     container_name: dolos-preprod
     volumes:
-      - ./config/preprod/daemon.toml:/etc/dolos/daemon.toml:ro
+      - ./config/preprod:/etc/dolos:ro
       - ./data/preprod:/data
     ports:
       - "${PREPROD_GRPC_PORT:-50052}:50051"
