@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  dolos-mainnet:
+    image: ${CARDANO_NODE_IMAGE:-inputoutput/cardano-node:latest}
+    container_name: dolos-mainnet
+    volumes:
+      - ./config/mainnet:/config:ro
+      - ./data/mainnet:/data/db
+      - dolos-mainnet-ipc:/ipc
+    ports:
+      - "${MAINNET_PORT:-3001}:3001"
+      - "${MAINNET_WEB_PORT:-8080}:8080"
+    environment:
+      - NETWORK=mainnet
+      - CARDANO_NODE_SOCKET_PATH=/ipc/node.socket
+    command: [
+      "run",
+      "--config", "/config/config.json",
+      "--topology", "/config/topology.json",
+      "--database-path", "/data/db",
+      "--socket-path", "/ipc/node.socket",
+      "--host-addr", "0.0.0.0",
+      "--port", "3001"
+    ]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "test -S /ipc/node.socket || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - cardano-network
+    deploy:
+      resources:
+        limits:
+          memory: ${MAINNET_MEMORY_LIMIT:-4G}
+        reservations:
+          memory: ${MAINNET_MEMORY_RESERVATION:-2G}
+
+  dolos-preprod:
+    image: ${CARDANO_NODE_IMAGE:-inputoutput/cardano-node:latest}
+    container_name: dolos-preprod
+    volumes:
+      - ./config/preprod:/config:ro
+      - ./data/preprod:/data/db
+      - dolos-preprod-ipc:/ipc
+    ports:
+      - "${PREPROD_PORT:-3002}:3001"
+      - "${PREPROD_WEB_PORT:-8081}:8080"
+    environment:
+      - NETWORK=preprod
+      - CARDANO_NODE_SOCKET_PATH=/ipc/node.socket
+    command: [
+      "run",
+      "--config", "/config/config.json",
+      "--topology", "/config/topology.json",
+      "--database-path", "/data/db",
+      "--socket-path", "/ipc/node.socket",
+      "--host-addr", "0.0.0.0",
+      "--port", "3001"
+    ]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "test -S /ipc/node.socket || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - cardano-network
+    deploy:
+      resources:
+        limits:
+          memory: ${PREPROD_MEMORY_LIMIT:-2G}
+        reservations:
+          memory: ${PREPROD_MEMORY_RESERVATION:-1G}
+
+volumes:
+  dolos-mainnet-ipc:
+  dolos-preprod-ipc:
+
+networks:
+  cardano-network:
+    driver: bridge
+

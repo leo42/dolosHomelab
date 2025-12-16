@@ -1,0 +1,22 @@
+# Environment files (may contain sensitive data)
+.env
+.env.local
+.env.*.local
+
+# Data directories (can be large)
+data/
+
+# Docker volumes
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
