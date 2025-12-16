@@ -1,51 +1,56 @@
 # Dolos Homelab Docker Setup
 
-A production-ready Docker Compose setup for running two Cardano Dolos nodes (mainnet and preprod) on a homelab server.
+A production-ready Docker Compose setup for running Dolos nodes (mainnet and preprod) on a homelab server.
 
 ## Overview
 
 This setup provides:
-- **Mainnet Node**: Full Cardano mainnet node
-- **Preprod Node**: Pre-production testnet node
-- Automatic genesis file download from official sources
+- **Mainnet Node**: Dolos node for Cardano mainnet
+- **Preprod Node**: Dolos node for preprod testnet
+- Mithril snapshot bootstrap for fast synchronization
 - Persistent data storage
-- Easy management scripts
 - Health monitoring
 - Automatic restart on failure
+
+## What is Dolos?
+
+Dolos is a lightweight Cardano data node that provides efficient blockchain data access through multiple APIs (gRPC, Mini Blockfrost, Ouroboros). It uses Mithril snapshots for fast bootstrapping instead of syncing from genesis.
 
 ## Prerequisites
 
 - **Docker**: Version 20.10 or higher
 - **Docker Compose**: V2 plugin (install: `sudo apt-get install docker-compose-plugin`)
-- **Disk Space**: Minimum 350GB, recommended 500GB+
-  - Mainnet: ~250GB
-  - Preprod: ~75GB
+- **Disk Space**: Minimum 200GB, recommended 300GB+
+  - Mainnet: ~150GB
+  - Preprod: ~50GB
   - OS and overhead: ~50GB
-  - Growth buffer: ~50GB
-- **RAM**: Minimum 8GB, recommended 16GB+
-- **Network**: Stable internet connection for initial sync
+- **RAM**: Minimum 4GB, recommended 8GB+
+- **Network**: Stable internet connection for initial bootstrap
 
 ## Quick Start
 
-1. **Clone and Setup**:
+1. **Bootstrap the nodes** (one-time operation):
    ```bash
-   cd dolosHomelab
-   ./scripts/setup.sh
+   # Bootstrap mainnet
+   docker compose run --rm dolos-mainnet bootstrap
+   
+   # Bootstrap preprod
+   docker compose run --rm dolos-preprod bootstrap
    ```
 
-2. **Start Nodes**:
+2. **Start the nodes**:
    ```bash
-   ./scripts/start.sh
+   docker compose up -d
    ```
 
-3. **View Logs**:
+3. **View logs**:
    ```bash
-   ./scripts/logs.sh all
+   docker compose logs -f
    ```
 
-4. **Stop Nodes**:
+4. **Stop the nodes**:
    ```bash
-   ./scripts/stop.sh
+   docker compose down
    ```
 
 ## Directory Structure
@@ -53,106 +58,97 @@ This setup provides:
 ```
 dolosHomelab/
 ├── docker-compose.yml          # Docker Compose configuration
-├── .env.example                # Example environment variables
-├── .env.mainnet                # Mainnet environment config
-├── .env.preprod                # Preprod environment config
+├── .env                        # Environment variables (optional)
+├── .gitignore
+├── README.md                   # This file
 ├── config/
-│   ├── mainnet/                # Mainnet configuration files
-│   │   ├── config.json         # Node configuration
-│   │   ├── topology.json       # Peer topology
-│   │   ├── byron-genesis.json  # Byron era genesis
-│   │   ├── shelley-genesis.json # Shelley era genesis
-│   │   ├── alonzo-genesis.json # Alonzo era genesis
-│   │   └── conway-genesis.json # Conway era genesis
-│   └── preprod/                # Preprod configuration files
-│       └── (same structure)
-├── data/
-│   ├── mainnet/                # Mainnet blockchain data
-│   └── preprod/                # Preprod blockchain data
-├── scripts/
-│   ├── setup.sh                # Initial setup script
-│   ├── download-genesis.sh     # Download genesis files
-│   ├── start.sh                # Start nodes
-│   ├── stop.sh                 # Stop nodes
-│   └── logs.sh                 # View logs
-└── README.md                   # This file
+│   ├── mainnet/
+│   │   └── daemon.toml         # Dolos configuration for mainnet
+│   └── preprod/
+│       └── daemon.toml         # Dolos configuration for preprod
+└── data/
+    ├── mainnet/                # Mainnet blockchain data
+    └── preprod/               # Preprod blockchain data
 ```
 
 ## Port Mappings
 
 ### Mainnet Node
-- **API Port**: 3001 (Cardano node communication)
-- **Web UI Port**: 8080 (if applicable)
+- **gRPC API**: 50051
+- **Mini Blockfrost API**: 3000
+- **Relay**: 30031
 
 ### Preprod Node
-- **API Port**: 3002 (Cardano node communication)
-- **Web UI Port**: 8081 (if applicable)
+- **gRPC API**: 50052
+- **Mini Blockfrost API**: 3001
+- **Relay**: 30032
 
-**Note**: Adjust ports in `.env.mainnet` and `.env.preprod` if conflicts occur.
+**Note**: Adjust ports in `.env` file if conflicts occur.
 
 ## Configuration
 
 ### Environment Variables
 
-Docker Compose uses environment variables from a `.env` file (created from `.env.example`) or system environment. The `.env.mainnet` and `.env.preprod` files are provided as reference examples.
-
-**Important**: Docker Compose automatically loads a `.env` file from the project root. To use custom settings:
-
-1. Copy the example: `cp .env.example .env`
-2. Edit `.env` with your settings
-3. Or set environment variables before running `docker compose`
-
-Example `.env` customization:
+Create a `.env` file in the project root to customize settings:
 
 ```bash
-# Docker image
-CARDANO_NODE_IMAGE=inputoutput/cardano-node:latest
+# Docker image (use specific version for production)
+DOLOS_IMAGE=ghcr.io/txpipe/dolos:latest
 
-# Ports
-MAINNET_PORT=3001
-MAINNET_WEB_PORT=8080
+# Mainnet ports
+MAINNET_GRPC_PORT=50051
+MAINNET_HTTP_PORT=3000
+MAINNET_RELAY_PORT=30031
+
+# Preprod ports
+PREPROD_GRPC_PORT=50052
+PREPROD_HTTP_PORT=3001
+PREPROD_RELAY_PORT=30032
 
 # Memory limits
 MAINNET_MEMORY_LIMIT=4G
 MAINNET_MEMORY_RESERVATION=2G
+PREPROD_MEMORY_LIMIT=2G
+PREPROD_MEMORY_RESERVATION=1G
 ```
 
-### Genesis Files
+### Configuration Files
 
-Genesis files are automatically downloaded from official Cardano sources:
-- **Mainnet**: https://book.world.dev.cardano.org/environments/mainnet/
-- **Preprod**: https://book.world.dev.cardano.org/environments/preprod/
+Dolos uses TOML configuration files located in `config/mainnet/daemon.toml` and `config/preprod/daemon.toml`.
 
-The setup script downloads:
-- `config.json` - Node configuration
-- `topology.json` - Peer connections
-- `byron-genesis.json` - Byron era parameters
-- `shelley-genesis.json` - Shelley era parameters
-- `alonzo-genesis.json` - Alonzo era parameters
-- `conway-genesis.json` - Conway era parameters
+Key configuration sections:
+- `[source]`: Mithril aggregator URL for snapshot bootstrapping
+- `[storage]`: Data directory path
+- `[network]`: Network magic number
+- `[serve.*]`: API endpoint configurations
+- `[relay]`: Relay server configuration
+
+For detailed configuration options, see the [Dolos Configuration Schema](https://docs.txpipe.io/dolos/configuration/schema).
 
 ## Usage
 
-### Initial Setup
+### Initial Bootstrap
 
-Run the setup script to:
-1. Check prerequisites
-2. Create directory structure
-3. Download genesis files
-4. Validate configuration
+Before starting the daemon, you need to bootstrap the blockchain data using Mithril snapshots:
 
 ```bash
-./scripts/setup.sh
+# Bootstrap mainnet (downloads and verifies snapshot)
+docker compose run --rm dolos-mainnet bootstrap
+
+# Bootstrap preprod
+docker compose run --rm dolos-preprod bootstrap
 ```
+
+This is a one-time operation per network. The bootstrap process downloads a verified snapshot of the blockchain, which is much faster than syncing from genesis.
 
 ### Starting Nodes
 
 Start both nodes:
 ```bash
-./scripts/start.sh
+docker compose up -d
 ```
 
-Or start individually with Docker Compose:
+Start a specific node:
 ```bash
 docker compose up -d dolos-mainnet
 docker compose up -d dolos-preprod
@@ -160,32 +156,30 @@ docker compose up -d dolos-preprod
 
 ### Viewing Logs
 
-View logs from a specific node:
+View logs from all services:
 ```bash
-./scripts/logs.sh mainnet
-./scripts/logs.sh preprod
-./scripts/logs.sh all
+docker compose logs -f
 ```
 
-Follow logs in real-time:
+View logs from a specific service:
 ```bash
-./scripts/logs.sh mainnet -f
-./scripts/logs.sh all -f
+docker compose logs -f dolos-mainnet
+docker compose logs -f dolos-preprod
 ```
 
 Show last N lines:
 ```bash
-./scripts/logs.sh mainnet -n 200
+docker compose logs --tail=200 dolos-mainnet
 ```
 
 ### Stopping Nodes
 
-Stop both nodes gracefully:
+Stop all nodes:
 ```bash
-./scripts/stop.sh
+docker compose down
 ```
 
-Or stop individually:
+Stop a specific node:
 ```bash
 docker compose stop dolos-mainnet
 docker compose stop dolos-preprod
@@ -204,15 +198,20 @@ docker ps | grep dolos-mainnet
 docker ps | grep dolos-preprod
 ```
 
-### Accessing Node Socket
+### Accessing APIs
 
-The node socket is available at:
-- Mainnet: `/var/lib/docker/volumes/doloshomelab_dolos-mainnet-ipc/_data/node.socket`
-- Preprod: `/var/lib/docker/volumes/doloshomelab_dolos-preprod-ipc/_data/node.socket`
+Once Dolos is running, you can access the APIs:
 
-Or access from within container:
+**Mini Blockfrost API** (HTTP):
 ```bash
-docker exec dolos-mainnet ls -la /ipc/
+curl http://localhost:3000/health  # Mainnet
+curl http://localhost:3001/health  # Preprod
+```
+
+**gRPC API**:
+```bash
+grpcurl -plaintext localhost:50051 list  # Mainnet
+grpcurl -plaintext localhost:50052 list  # Preprod
 ```
 
 ## Monitoring
@@ -235,7 +234,7 @@ docker stats dolos-mainnet dolos-preprod
 
 ### Health Checks
 
-Docker Compose includes health checks that verify the node socket exists:
+Docker Compose includes health checks that verify the HTTP API is responding:
 ```bash
 docker inspect dolos-mainnet | grep -A 10 Health
 ```
@@ -246,12 +245,13 @@ docker inspect dolos-mainnet | grep -A 10 Health
 
 1. **Check logs**:
    ```bash
-   ./scripts/logs.sh mainnet
+   docker compose logs dolos-mainnet
    ```
 
-2. **Verify genesis files exist**:
+2. **Verify configuration files exist**:
    ```bash
-   ls -la config/mainnet/
+   ls -la config/mainnet/daemon.toml
+   ls -la config/preprod/daemon.toml
    ```
 
 3. **Check disk space**:
@@ -264,50 +264,49 @@ docker inspect dolos-mainnet | grep -A 10 Health
    docker info
    ```
 
-### Genesis Files Missing
+### Bootstrap Fails
 
-Re-download genesis files:
-```bash
-./scripts/download-genesis.sh
-```
+If bootstrap fails:
+1. Check your internet connection
+2. Verify the Mithril aggregator URL is accessible
+3. Ensure sufficient disk space
+4. Check logs for specific error messages:
+   ```bash
+   docker compose run --rm dolos-mainnet bootstrap
+   ```
 
 ### Port Conflicts
 
 Edit `.env` file to change ports:
 ```bash
-MAINNET_PORT=3001  # Change to available port
+MAINNET_HTTP_PORT=3000  # Change to available port
 ```
 
 Then restart:
 ```bash
 docker compose down
-./scripts/start.sh
+docker compose up -d
 ```
 
 ### Container Keeps Restarting
 
 Check logs for errors:
 ```bash
-./scripts/logs.sh mainnet -n 500
+docker compose logs --tail=500 dolos-mainnet
 ```
 
 Common issues:
 - Insufficient disk space
-- Missing genesis files
+- Configuration file errors
 - Port already in use
 - Memory limit too low
 
 ### Slow Synchronization
 
-Initial sync can take days. Factors affecting speed:
-- Network bandwidth
-- Disk I/O performance (SSD recommended)
-- System resources (CPU/RAM)
-
-Monitor progress:
-```bash
-./scripts/logs.sh mainnet -f | grep -i "chain\|slot\|block"
-```
+After bootstrap, Dolos should be ready quickly. If you notice slow performance:
+- Check network bandwidth
+- Verify disk I/O performance (SSD recommended)
+- Monitor system resources (CPU/RAM)
 
 ### Data Directory Permissions
 
@@ -325,6 +324,11 @@ Pull latest image:
 ```bash
 docker compose pull
 docker compose up -d
+```
+
+For production, use a specific version tag:
+```bash
+DOLOS_IMAGE=ghcr.io/txpipe/dolos:v0.8.0
 ```
 
 ### Cleaning Up
@@ -358,22 +362,21 @@ Docker manages log rotation. Configure in `/etc/docker/daemon.json`:
 
 ### Minimum
 - **CPU**: 2 cores
-- **RAM**: 8GB
-- **Disk**: 350GB SSD
+- **RAM**: 4GB
+- **Disk**: 200GB SSD
 - **Network**: 10 Mbps
 
 ### Recommended
 - **CPU**: 4+ cores
-- **RAM**: 16GB+
-- **Disk**: 500GB+ NVMe SSD
+- **RAM**: 8GB+
+- **Disk**: 300GB+ NVMe SSD
 - **Network**: 100+ Mbps
 
 ### Disk Space Breakdown
-- Mainnet database: ~250GB (grows ~1-2GB/month)
-- Preprod database: ~75GB
+- Mainnet database: ~150GB (grows over time)
+- Preprod database: ~50GB
 - OS and Docker: ~30GB
 - Logs and overhead: ~20GB
-- Growth buffer: ~50GB
 
 ## Security Considerations
 
@@ -384,9 +387,9 @@ Docker manages log rotation. Configure in `/etc/docker/daemon.json`:
 
 ## Support and Documentation
 
-- **Cardano Node Docs**: https://developers.cardano.org/
+- **Dolos Documentation**: https://docs.txpipe.io/dolos/
 - **Docker Compose Docs**: https://docs.docker.com/compose/
-- **Cardano Node Repository**: https://github.com/input-output-hk/cardano-node
+- **TxPipe GitHub**: https://github.com/txpipe
 
 ## License
 
@@ -395,16 +398,15 @@ This setup configuration is provided as-is for homelab use.
 ## Contributing
 
 Improvements and suggestions are welcome! Please ensure:
-- Scripts work on common Linux distributions
+- Configuration follows Dolos best practices
 - Documentation is updated
 - Changes are tested
 
 ## Changelog
 
-### Version 1.0.0
-- Initial release
-- Support for mainnet and preprod nodes
-- Automatic genesis file download
-- Management scripts
-- Health checks and monitoring
-
+### Version 2.0.0
+- Complete rework to use Dolos instead of Cardano node
+- Removed all scripts, using Docker Compose directly
+- Added Mithril snapshot bootstrap support
+- Updated configuration to use TOML files
+- Simplified setup process
