@@ -16,7 +16,7 @@ alonzo_path = "/etc/dolos/alonzo.json"
 conway_path = "/etc/dolos/conway.json"
 
 [chain]
-type = "Cardano"
+type = "cardano"
 
 [chain.track]
 seen_addresses = true
