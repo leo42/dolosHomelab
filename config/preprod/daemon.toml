@@ -1,6 +1,11 @@
 [source.mithril]
 aggregator = "https://aggregator.release-preprod.api.mithril.network/aggregator"
 
+[upstream]
+peer_address = "preprod-node.world.dev.cardano.org:30000"
+network_magic = 1
+is_testnet = true
+
 [storage]
 path = "/data"
 
